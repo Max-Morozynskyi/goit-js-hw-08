@@ -1,37 +1,37 @@
 import throttle from 'lodash.throttle';
 
-const feedbackForm = document.querySelector('.feedback-form');
-const localStorageKey = 'feedback-form-state';
-
-initialForm()
-
-feedbackForm.addEventListener('input', throttle(onInput,500));
-    
-function onInput() {
-    const formData = new FormData(feedbackForm);
-    let userForm = {};
-    formData.forEach((value, name) => (userForm[name] = value));
-    localStorage.setItem(localStorageKey, JSON.stringify(userForm));
+const refs = {
+    form: document.querySelector('.feedback-form'),
 };
-    
-function initialForm() {
-    let persistedForm = localStorage.getItem('localStorageKey');
-    if (persistedForm) {
-        persistedForm = JSON.parse(persistedForm);
-        console.log(persistedForm);
-        Object.entries(persistedForm).forEach(([name, value]) => {
-        form.elements[name].value = value;
-        });
+
+refs.form.addEventListener('input', throttle(onFormInput, 500));
+refs.form.addEventListener('submit', onFormSubmit);
+
+const localData = 'feedback-form-state';
+let formData = {};
+
+function onFormSubmit(e) {
+    e.preventDefault();
+    e.currentTarget.reset();
+    console.log(JSON.parse(localStorage.getItem(localData)));
+    localStorage.removeItem(localData);
+}
+
+function onFormInput() {
+    formData = {
+        email: `${refs.form.elements.email.value}`,
+        message: `${refs.form.elements.message.value}`,
+    };
+    localStorage.setItem(localData, JSON.stringify(formData));
+}
+
+function savedForm() {
+    const savedFormData = JSON.parse(localStorage.getItem(localData));
+
+    if (savedFormData !== null) {
+        refs.form.elements.email.value = savedFormData.email;
+        refs.form.elements.message.value = savedFormData.message;
     }
 }
 
-feedbackForm.addEventListener('submit', onSubmit);
-function onSubmit(evt) {
-  evt.preventDefault();
-  localStorage.removeItem(localStorageKey);
-  let userForm = {};
-  const formData = new FormData(feedbackForm);
-  formData.forEach((value, name) => (userForm[name] = value));
-  console.log(userForm);
-  feedbackForm.reset();
-}
+savedForm();
